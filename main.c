@@ -3,13 +3,37 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <stdlib.h>
 
-bool isDir(const char *path);
+void remalloc(char *in, size_t addSize){
+    char val = *in;
+    in = (char *) malloc(addSize);
+   // in[0] = val;
+}
 
+char** listDir(DIR *dir){
+    struct dirent *de;
+    char **dd = (char**) malloc(sizeof(char)+10000);
+
+    int i = 0;
+    while((de = readdir(dir)) != NULL){
+        if (de == NULL){
+            break;
+        }
+        char *name = de->d_name;
+        if ((!strcmp(".", name)) || (!strcmp("..", name))){
+            continue;
+        }
+        dd[i] = name;
+        i++;
+    }
+    return dd;
+}
 
 bool deleteFile(const char *file){
-    if (!isDir(file)){
-        FILE *f;
+    DIR *dir = opendir(file);
+    if (dir == NULL){
+        /*FILE *f;
         if (!(f = fopen(file, "r+"))) {
             printf("Error opening file!\n");
             return false;
@@ -22,22 +46,25 @@ bool deleteFile(const char *file){
         }
         
         fflush(f);
-        fclose(f);
+        fclose(f);*/
     } else {
-        printf("is dir");
-    }
-    return false;
-}
-
-bool isDir(const char *path){
-    DIR *dir = opendir(path);
-    if (dir != NULL){
-        closedir(dir);
-        return true;
+        char **dirdata = listDir(dir);
+        int i = 0;
+        while (1){
+            if (dirdata[i] == NULL){
+                break;
+            }
+            char *file = dirdata[i];
+            printf("%d, %s\n",i,file);
+            i++;
+        }
+        if (dir != NULL){
+            closedir(dir);
+        }
     }
     return false;
 }
 
 void main(){
-    deleteFile("test");
+    deleteFile("./");
 }
