@@ -43,7 +43,7 @@ bool delete(const char *file, bool recursive, bool quiet, bool verbose, bool for
         fclose(f);
         if (verbose){
             printf("Overwritten %d bytes\n", size);
-        } else {
+        } else if (!quiet) {
             printf("\n");
         }
 
