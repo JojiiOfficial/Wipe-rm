@@ -6,27 +6,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-char** listDir(DIR *dir){
-    struct dirent *de;
-    char **dd = (char**) malloc(sizeof(char)+10000);
-    int i = 0;
-    while((de = readdir(dir)) != NULL){
-        if (de == NULL){
-            break;
-        }
-        char *name = de->d_name;
-        if ((!strcmp(".", name)) || (!strcmp("..", name))){
-            continue;
-        }
-        dd[i] = name;
-        i++;
-    }
-    if (i == 0){
-        return NULL;
-    }
-    return dd;
-}
-
 int isDirectory(const char *path) {
     struct stat statbuf;
     if (stat(path, &statbuf) != 0){
