@@ -61,22 +61,21 @@ bool deleteFile(const char *file){
             if (de == NULL){
                 break;
             }
-            char *name = de->d_name;
-            if ((!strcmp(".", name)) || (!strcmp("..", name))){
+            if ((!strcmp(".", de->d_name)) || (!strcmp("..", de->d_name))){
                 continue;
             }
 
-            char *path = (char*) malloc(strlen(file) + strlen(name) + 2*sizeof(char*) + 1);
+            char *path = (char*) malloc(strlen(file) + strlen(de->d_name) + 2*sizeof(char*) + 1);
             memset(path, 0, sizeof(path));
             strcat(path, file);
             strcat(path, "/");
-            strcat(path, name);
+            strcat(path, de->d_name);
             deleteFile(path);
             free(path);
 
             i++;
         }
-
+        free(de);
         if (dir != NULL){
             closedir(dir);
         }
