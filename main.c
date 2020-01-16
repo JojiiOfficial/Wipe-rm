@@ -20,27 +20,44 @@ bool delete(const char *file, bool recursive, bool quiet, bool verbose, bool for
         FILE *f;
         if (!(f = fopen(file, "r+"))) {
             printf("Error opening file: '%s'\n",file);
-            if (verbose){
+            if (verbose && !force){
                 printf("Use -f to skip errors\n");
-            }
-            if (!force){
-                exit(EXIT_FAILURE);
             }
             return false;
         }
-        if (verbose){
-            printf("deleting file: %s\n", file);
+        if (!quiet){
+            char *pre = "deleting";
+            if(zeroOnly){
+                pre = "zeroing";
+            }
+            printf("%s file: '%s'! ", pre, file);
         }
+
         fseek(f, 0, SEEK_END);
         long int size = ftell(f);
         fseek(f, 0, SEEK_SET);
-        for (int i = 0; i <= size; i++){
+        for (int i = 0; i < size; i++){
             fputc(0, f);
         }
-        
         fflush(f);
         fclose(f);
+        if (verbose){
+            printf("Overwritten %d bytes\n", size);
+        } else {
+            printf("\n");
+        }
+
+        if (!zeroOnly){
+            if (remove(file) != 0){
+                printf("Error deleting file: %s\n", file);
+                return false;
+            }
+        }
     } else {
+        if (!recursive){
+            printf("'%s' is a folder. Use -r to delete it recursively\n", file);
+            return false;
+        }
         DIR *dir = opendir(file);
         struct dirent *de;
         int i = 0;
@@ -59,16 +76,19 @@ bool delete(const char *file, bool recursive, bool quiet, bool verbose, bool for
             strcat(path, "/");
             strcat(path, de->d_name);
             delete(path, recursive, quiet, verbose, force, zeroOnly);
-            free(path);
-
             i++;
         }
+
         free(de);
         if (dir != NULL){
             closedir(dir);
         }
+        if (remove(file) != 0){
+            printf("Error removing folder: %s\n", file);
+            return false;
+        }
     }
-    return false;
+    return true;
 }
 
 void usage(char* s, short exitcode){
@@ -97,6 +117,11 @@ void main(int argc, char** argv){
         if (!strncmp(argv[i], "-",1)){
             continue;
         }
-        delete(argv[i], recursive, quiet, verbose, force, zeroOnly);
+        bool success = delete(argv[i], recursive, quiet, verbose, force, zeroOnly);
+        if (!success){
+            if (!force){
+                exit(EXIT_FAILURE);
+            }
+        }
     }
 }
