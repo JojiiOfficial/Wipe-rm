@@ -4,17 +4,11 @@
 #include <stdbool.h>
 #include <dirent.h>
 #include <stdlib.h>
-
-void remalloc(char *in, size_t addSize){
-    char val = *in;
-    in = (char *) malloc(addSize);
-   // in[0] = val;
-}
+#include <sys/stat.h>
 
 char** listDir(DIR *dir){
     struct dirent *de;
     char **dd = (char**) malloc(sizeof(char)+10000);
-
     int i = 0;
     while((de = readdir(dir)) != NULL){
         if (de == NULL){
@@ -27,17 +21,28 @@ char** listDir(DIR *dir){
         dd[i] = name;
         i++;
     }
+    if (i == 0){
+        return NULL;
+    }
     return dd;
 }
 
+int isDirectory(const char *path) {
+    struct stat statbuf;
+    if (stat(path, &statbuf) != 0){
+        return 0;
+    }
+    return S_ISDIR(statbuf.st_mode);
+}
+
 bool deleteFile(const char *file){
-    DIR *dir = opendir(file);
-    if (dir == NULL){
-        /*FILE *f;
+    if (!isDirectory(file)){
+        FILE *f;
         if (!(f = fopen(file, "r+"))) {
-            printf("Error opening file!\n");
+            printf("Error opening file: %s\n",file);
             return false;
         }
+        printf("deleting file: %s\n", file);
         fseek(f, 0, SEEK_END);
         long int size = ftell(f);
         fseek(f, 0, SEEK_SET);
@@ -46,18 +51,32 @@ bool deleteFile(const char *file){
         }
         
         fflush(f);
-        fclose(f);*/
+        fclose(f);
     } else {
-        char **dirdata = listDir(dir);
+        DIR *dir = opendir(file);
+        struct dirent *de;
         int i = 0;
-        while (1){
-            if (dirdata[i] == NULL){
+
+        while((de = readdir(dir)) != NULL){
+            if (de == NULL){
                 break;
             }
-            char *file = dirdata[i];
-            printf("%d, %s\n",i,file);
+            char *name = de->d_name;
+            if ((!strcmp(".", name)) || (!strcmp("..", name))){
+                continue;
+            }
+
+            char *path = (char*) malloc(strlen(file) + strlen(name) + 2*sizeof(char*) + 1);
+            memset(path, 0, sizeof(path));
+            strcat(path, file);
+            strcat(path, "/");
+            strcat(path, name);
+            deleteFile(path);
+            free(path);
+
             i++;
         }
+
         if (dir != NULL){
             closedir(dir);
         }
@@ -66,5 +85,5 @@ bool deleteFile(const char *file){
 }
 
 void main(){
-    deleteFile("./");
+    deleteFile("test/etc");
 }
