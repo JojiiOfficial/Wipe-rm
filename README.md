@@ -1,2 +1,2 @@
 # Wipe-rm
-Delete your files completely from your harddisk by overwriting it with zeros
+Remove your files completely from your harddisk by overwriting it with zeros before deleting it.
