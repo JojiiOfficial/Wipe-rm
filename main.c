@@ -92,7 +92,7 @@ bool delete(const char *file, bool recursive, bool quiet, bool verbose, bool for
 }
 
 void usage(char* s, short exitcode){
-    printf("Usage: %s [-hrfqv] [file...]\n",s);
+    printf("Usage: %s [-hrfqv] [files...]\n",s);
     exit(exitcode);
 }
 
